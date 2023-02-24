@@ -94,13 +94,17 @@ def chapter_catalog(chapter_title_and_link: str, end_parsing: str):
     return data_dictionary
 
 
-def get_name_and_price():
-    pass
+def get_name_and_price(chapter: str, tag: str):
+    resp = requests.get(chapter, headers=headers)
+    soup_chapter = BeautifulSoup(resp.content, "lxml")
+    print(soup_chapter)
 
 
 # Раздел с проводами
 cable = chapter_catalog(title_and_link["Кабели, провода и изделия для прокладки кабеля"], "Промышленные электрические соединители")
+f = list(cable.values())[0]
 
+get_name_and_price(f, "js397")
 # Раздел со светотехникой
 light = chapter_catalog(title_and_link["Светотехнические изделия"], "Аксессуары Системы Управления Освещеним (адаптеры, выключатели т.д.)")
-print(light)
+
