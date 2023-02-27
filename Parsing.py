@@ -1,3 +1,5 @@
+from typing import Dict, Any
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -17,108 +19,91 @@ def check_site(site: str, head):
     :return: функция ничего не возвращает
     """
     url = requests.get(site, headers=head)
+    sts = "Неизвестно"
     if url.status_code == 200:
-        print(f'Состояние сайт {url}. Все в норме!')
+        sts = f'Состояние сайт {url}. Все в норме!'
     if url.status_code != 200:
-        print(f'{url}. Требуется проверка')
+        sts = f'{url}. Требуется проверка'
+    return sts
 
 
-def create_catalog_all_production(site: str):
+def delete_unknown_chapter(counter: int, list_with_chapter: list):
     """
-    Функция создаёт основой каталог сайта в виде словаря из ключей в виде названия раздела и значений в виде ссылок на страницы подкаталогов
+    Удаление не нужны элементов из каталога
+    :param counter: Сколько элементов удалить
+    :param list_with_chapter: Список, в котором удалять
+    :return: Новый список
+    """
+    while counter != 0:
+        list_with_chapter.pop(0)
+        counter -= 1
+    return list_with_chapter
+
+
+def create_catalog(soup, counter_del):
+    """
+    Функция создания каталога изделий
+    :param counter_del: Кол-во удаляемых НЕНУЖНЫХ разделов
+    :param soup: Объект парсинга сайта
+    :return: Возвращает словарь из разделов каталога и ссылок на эти разделы
+    """
+    links = []  # Лист для ссылок
+    titles = []  # Лист для заголовков каталога
+    for item in soup:
+        link_url = item.get("href")
+        links.append(link_url)
+        title = item.getText("CatalogCategories_title__ahzrn")
+        if title == "«Честная позиция».":
+            break
+        titles.append(title)
+
+    # Удалить не нужные элементы из каталога
+    titles = delete_unknown_chapter(counter_del, titles)
+    links = delete_unknown_chapter(counter_del, links)
+    # Создать каталог
+    catalog = dict(zip(titles, links))
+    for link in catalog:
+        catalog[link] = "https://www.etm.ru/" + catalog[link]
+    return catalog
+
+
+def create_catalog_production(site: str, delete_chapter: int):
+    """
+    Функция создаёт основой каталог сайта в виде словаря из ключей в виде названия раздела
+     и значений в виде ссылок на страницы подкаталогов
+    :param delete_chapter: Удалить ненужные разделы
     :param site: Основной сайт магазина
     :return: Возвращает словарь из названия разделов и ссылок
     """
     response = requests.get(site, headers=headers)  # Получаем ответ от сайта
     soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
-
     all_links = soup.findAll('a')  # ищем все ссылки
-    list_link = []  # cписок для ссылок
-    list_title = []  # список для названия разделов каталога
     # складываем ссылки разделов и названия разделов в списки
-    for link in all_links:
-        link_url = link.get("href")
-        list_link.append(link_url)
-        title_url = link.getText("CatalogCategories_title__ahzrn")
-        list_title.append(title_url)
-        if title_url == "Программное обеспечение":
-            break
-    # Удаляем лишние ссылки
-    list_title.pop(0)
-    list_title.pop(0)
-    list_link.pop(0)
-    list_link.pop(0)
-    # Создаём словарь из заголовков и ссылок
-    title_and_link = dict(zip(list_title, list_link))
-    for value in title_and_link:
-        title_and_link[value] = "https://www.etm.ru" + title_and_link[value]
-    return title_and_link
-
-
-def del_unknown(number: int, list_with_something):  # ПРОВЕРИТЬ РАБОТУ
-    if number > 0:
-        list_with_something.pop()
-        number = number - 1
-
-
-def chapter_catalog(main_catalog: dict, end_parsing: str, index: int):
-    """
-    Функция парсит по разделам каталога, которые уже созданы выше, для получения названия и ссылок подкаталога
-    :param index: Индекс словаря
-    :param end_parsing: Заголовок раздела, после которого останавливаем парсинг (последний раздел)
-    :param main_catalog: Основной каталог товаров
-    :return: возвращает словарь из названия разделов и их ссылок
-    """
-    index = 0  # для движения по словарю
-    for chapter in main_catalog:
-        resp = requests.get(main_catalog[index], headers=headers) # Запрос на сайт
-        soup_chapter = BeautifulSoup(resp.content, "lxml") # Получение информации со всего сайта по запросу выше
-        links = soup_chapter.findAll('a')  # ищем все ссылки на элементы
-        main_catalog.setdefault(__key=[], []).
-    # пустые списки для ссылок и заголовков разделов
-    title_chapter = []
-    link_chapter = []
-
-    # перебираем все ссылки и заголовки, складываем в списки созданные ранее
-    for url in links:
-        link_ch = url.get("href")
-        link_chapter.append(link_ch)
-        title_ch = url.getText("CCatalogCategories_cardSubCategory__urEmp")
-        title_chapter.append(title_ch)
-        if title_ch == end_parsing:
-            break
-
-    # Удаляем не нужны ссылки
-    link_chapter.pop(0)
-    link_chapter.pop(0)
-    link_chapter.pop(0)
-    title_chapter.pop(0)
-    title_chapter.pop(0)
-    title_chapter.pop(0)
-
-    # Создаём словарь из названия разделов и ссылок
-    data_dictionary = dict(zip(title_chapter, link_chapter))
-    for value in data_dictionary:
-        data_dictionary[value] = "https://www.etm.ru/catalog/" + data_dictionary[value]
-    return data_dictionary
-
-
-def get_name_and_price(chapter: str, tag: str):  # ФУНКЦИЯ НЕ ГОТОВАЯ. ТРЕБУЕТСЯ ПРОВЕРКА
-    resp = requests.get(chapter, headers=headers)
-    soup_chapter = BeautifulSoup(resp.content, "lxml")
-    print(soup_chapter)
+    return create_catalog(all_links, delete_chapter)
 
 
 # Проверяем сайт на отклик состояния. Если 200 всё ОК, если другое число, то читаем документацию в этому числу
-check_site(url_of_ETM, headers)
+status = check_site(url_of_ETM, headers)
+print(status)
 
 # Получаем общий каталог сайта
-catalog_etm = create_catalog_all_production("https://www.etm.ru/catalog")
-
-# # Раздел с проводами
-# cable = chapter_catalog(title_and_link["Кабели, провода и изделия для прокладки кабеля"], "Промышленные электрические соединители")
-# f = list(cable.values())[0]
-#
-# get_name_and_price(f, "js397")
-# # Раздел со светотехникой
-# light = chapter_catalog(title_and_link["Светотехнические изделия"], "Аксессуары Системы Управления Освещеним (адаптеры, выключатели т.д.)")
+catalog_etm = create_catalog_production("https://www.etm.ru/catalog", 2)
+cable = create_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
+lighting_products = create_catalog_production(catalog_etm["Светотехнические изделия"], 3)
+electrical_installation_products = create_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
+low_voltage_equipment = create_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
+panel_equipment = create_catalog_production(catalog_etm["Щитовое оборудование"], 3)
+heating_and_climate = create_catalog_production(catalog_etm["Отопление и климат"], 3)
+tools_equipment_and_protective_equipment = create_catalog_production(catalog_etm["Инструмент, оснастка и средства защиты"], 3)
+workwear_and_PPE = create_catalog_production(catalog_etm["Спецодежда и СИЗ"], 3)
+Automation_instrumentation = create_catalog_production(catalog_etm["Автоматизация, КИП"], 3)
+Equipment_6_10kV = create_catalog_production(catalog_etm["Оборудование 6-10кВ"], 3)
+Security_systems = create_catalog_production(catalog_etm["Системы безопасности"], 3)
+Telecommunication_quipment_and_SCS = create_catalog_production(catalog_etm["Телекоммуникационное оборудование и СКС"], 3)
+Bearings = create_catalog_production(catalog_etm["Подшипники"], 3)
+Hardware_and_construction_fasteners = create_catalog_production(catalog_etm["Метизы и строительный крепеж"], 3)
+Pipeline_systems = create_catalog_production(catalog_etm["Трубопроводные системы"], 3)
+Shut_off_and_control_valves = create_catalog_production(catalog_etm["Запорная и регулирующая арматура"], 3)
+Pumps_tanks_and_tanks = create_catalog_production(catalog_etm["Насосы, баки и емкости"], 3)
+Related_products = create_catalog_production(catalog_etm["Сопутствующие товары"], 3)
+Software = create_catalog_production(catalog_etm["Программное обеспечение"], 3)
