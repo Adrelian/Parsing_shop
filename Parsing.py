@@ -1,5 +1,3 @@
-from typing import Dict, Any
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -57,18 +55,22 @@ def create_catalog(soup, counter_del):
             break
         titles.append(title)
 
+
     # Удалить не нужные элементы из каталога
     titles = delete_unknown_chapter(counter_del, titles)
     links = delete_unknown_chapter(counter_del, links)
     # Создать каталог
     catalog = dict(zip(titles, links))
+    # Если ссылка не имела слова catalog вначале, то нужно его добавить
     for link in catalog:
-        catalog[link] = "https://www.etm.ru/" + catalog[link]
-        print(catalog[link])
+        if catalog[link][1:8] != "catalog":
+            catalog[link] = "https://www.etm.ru/catalog/" + catalog[link]  # ссылки на подкаталоги
+        else:
+            catalog[link] = "https://www.etm.ru/" + catalog[link]   # ссылки на основной каталог
     return catalog
 
 
-def create_catalog_production(site: str, delete_chapter: int):
+def create_soup_for_catalog_production(site: str, delete_chapter: int):
     """
     Функция создаёт основой каталог сайта в виде словаря из ключей в виде названия раздела
      и значений в виде ссылок на страницы подкаталогов
@@ -88,24 +90,23 @@ status = check_site(url_of_ETM, headers)
 print(status)
 
 # Получаем общий каталог сайта
-catalog_etm = create_catalog_production("https://www.etm.ru/catalog", 2)
-cable = create_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
-lighting_products = create_catalog_production(catalog_etm["Светотехнические изделия"], 3)
-print(cable)
-# electrical_installation_products = create_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
-# low_voltage_equipment = create_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
-# panel_equipment = create_catalog_production(catalog_etm["Щитовое оборудование"], 3)
-# heating_and_climate = create_catalog_production(catalog_etm["Отопление и климат"], 3)
-# tools_equipment_and_protective_equipment = create_catalog_production(catalog_etm["Инструмент, оснастка и средства защиты"], 3)
-# workwear_and_PPE = create_catalog_production(catalog_etm["Спецодежда и СИЗ"], 3)
-# Automation_instrumentation = create_catalog_production(catalog_etm["Автоматизация, КИП"], 3)
-# Equipment_6_10kV = create_catalog_production(catalog_etm["Оборудование 6-10кВ"], 3)
-# Security_systems = create_catalog_production(catalog_etm["Системы безопасности"], 3)
-# Telecommunication_quipment_and_SCS = create_catalog_production(catalog_etm["Телекоммуникационное оборудование и СКС"], 3)
-# Bearings = create_catalog_production(catalog_etm["Подшипники"], 3)
-# Hardware_and_construction_fasteners = create_catalog_production(catalog_etm["Метизы и строительный крепеж"], 3)
-# Pipeline_systems = create_catalog_production(catalog_etm["Трубопроводные системы"], 3)
-# Shut_off_and_control_valves = create_catalog_production(catalog_etm["Запорная и регулирующая арматура"], 3)
-# Pumps_tanks_and_tanks = create_catalog_production(catalog_etm["Насосы, баки и емкости"], 3)
-# Related_products = create_catalog_production(catalog_etm["Сопутствующие товары"], 3)
-# Software = create_catalog_production(catalog_etm["Программное обеспечение"], 3)
+catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 2)
+cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
+lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 3)
+# electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
+# low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
+# panel_equipment = create_soup_for_catalog_production(catalog_etm["Щитовое оборудование"], 3)
+# heating_and_climate = create_soup_for_catalog_production(catalog_etm["Отопление и климат"], 3)
+# tools_equipment_and_protective_equipment = create_soup_for_catalog_production(catalog_etm["Инструмент, оснастка и средства защиты"], 3)
+# workwear_and_PPE = create_soup_for_catalog_production(catalog_etm["Спецодежда и СИЗ"], 3)
+# Automation_instrumentation = create_soup_for_catalog_production(catalog_etm["Автоматизация, КИП"], 3)
+# Equipment_6_10kV = create_soup_for_catalog_production(catalog_etm["Оборудование 6-10кВ"], 3)
+# Security_systems = create_soup_for_catalog_production(catalog_etm["Системы безопасности"], 3)
+# Telecommunication_quipment_and_SCS = create_soup_for_catalog_production(catalog_etm["Телекоммуникационное оборудование и СКС"], 3)
+# Bearings = create_soup_for_catalog_production(catalog_etm["Подшипники"], 3)
+# Hardware_and_construction_fasteners = create_soup_for_catalog_production(catalog_etm["Метизы и строительный крепеж"], 3)
+# Pipeline_systems = create_soup_for_catalog_production(catalog_etm["Трубопроводные системы"], 3)
+# Shut_off_and_control_valves = create_soup_for_catalog_production(catalog_etm["Запорная и регулирующая арматура"], 3)
+# Pumps_tanks_and_tanks = create_soup_for_catalog_production(catalog_etm["Насосы, баки и емкости"], 3)
+# Related_products = create_soup_for_catalog_production(catalog_etm["Сопутствующие товары"], 3)
+# Software = create_catalog_production(create_soup_for_catalog_production["Программное обеспечение"], 3)
