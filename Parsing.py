@@ -64,6 +64,7 @@ def create_catalog(soup, counter_del):
     catalog = dict(zip(titles, links))
     for link in catalog:
         catalog[link] = "https://www.etm.ru/" + catalog[link]
+        print(catalog[link])
     return catalog
 
 
