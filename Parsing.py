@@ -81,6 +81,8 @@ def create_soup_for_catalog_production(site: str, delete_chapter: int):
     response = requests.get(site, headers=headers)  # Получаем ответ от сайта
     soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
     all_links = soup.findAll('a')  # ищем все ссылки
+    all_little_links = soup.findAll('div', "CatalogCategories_link__k1wbv")
+    print(all_little_links)
     # складываем ссылки разделов и названия разделов в списки
     return create_catalog(all_links, delete_chapter)
 
@@ -92,7 +94,8 @@ print(status)
 # Получаем общий каталог сайта
 catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 2)
 cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
-lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 3)
+print(cable)
+# lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 3)
 # electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
 # low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
 # panel_equipment = create_soup_for_catalog_production(catalog_etm["Щитовое оборудование"], 3)
