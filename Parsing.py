@@ -81,8 +81,6 @@ def create_soup_for_catalog_production(site: str, delete_chapter: int):
     response = requests.get(site, headers=headers)  # Получаем ответ от сайта
     soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
     all_links = soup.findAll('a')  # ищем все ссылки
-    all_little_links = soup.findAll('div', "CatalogCategories_link__k1wbv")
-    print(all_little_links)
     # складываем ссылки разделов и названия разделов в списки
     return create_catalog(all_links, delete_chapter)
 
