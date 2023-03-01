@@ -1,5 +1,8 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
+import os
 
 # headers взял из своего браузера в запросах, нужен что бы "обмануть" сайт
 headers = {
@@ -55,7 +58,6 @@ def create_catalog(soup, counter_del):
             break
         titles.append(title)
 
-
     # Удалить не нужные элементы из каталога
     titles = delete_unknown_chapter(counter_del, titles)
     links = delete_unknown_chapter(counter_del, links)
@@ -63,10 +65,10 @@ def create_catalog(soup, counter_del):
     catalog = dict(zip(titles, links))
     # Если ссылка не имела слова catalog вначале, то нужно его добавить
     for link in catalog:
-        if catalog[link][1:8] != "catalog":
+        if counter_del != 2:
             catalog[link] = "https://www.etm.ru/catalog/" + catalog[link]  # ссылки на подкаталоги
         else:
-            catalog[link] = "https://www.etm.ru/" + catalog[link]   # ссылки на основной каталог
+            catalog[link] = "https://www.etm.ru/" + catalog[link]  # ссылки на основной каталог
     return catalog
 
 
@@ -92,7 +94,6 @@ print(status)
 # Получаем общий каталог сайта
 catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 2)
 cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
-print(cable)
 # lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 3)
 # electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
 # low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
