@@ -24,12 +24,12 @@ def check_site(site: str, head):
     :return: функция ничего не возвращает
     """
     url = requests.get(site, headers=head)
-    sts = "Неизвестно"
+    status_site = "Неизвестно"
     if url.status_code == 200:
-        sts = f'Состояние сайт {url}. Все в норме!'
+        status_site = f'Состояние сайт {url}. Все в норме!'
     if url.status_code != 200:
-        sts = f'{url}. Требуется проверка'
-    return sts
+        status_site = f'{url}. Требуется проверка'
+    return status_site
 
 
 def push_button_open_catalog(site):
@@ -100,12 +100,12 @@ def create_soup_for_catalog_production(site: str, type_catalog=1):
     if type_catalog == 1:
         response = requests.get(site, headers=headers)  # Получаем ответ от сайта
         soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
-        all_catalog = soup.findAll(class_ = "CatalogCategories_card__Y8sOG")  # ищем все ссылки в основном каталоге
+        all_catalog = soup.findAll(class_ = "CatalogCategories_card__Y8sOG")  # ищем ссылки в основном каталоге
 
     else:
         create_page = push_button_open_catalog(site)
         soup = BeautifulSoup(create_page, "lxml")
-        all_catalog = soup.findAll(class_="CatalogCategories_titleThirdCategory__NgjiL")  # ищем все ссылки в подкаталоге
+        all_catalog = soup.findAll(class_="CatalogCategories_titleThirdCategory__NgjiL")  # ищем ссылки в подкаталоге
     return create_catalog(all_catalog, type_catalog)
 
 
@@ -113,7 +113,7 @@ def create_soup_for_catalog_production(site: str, type_catalog=1):
 status = check_site(url_of_ETM, headers)
 
 # Получаем общий каталог сайта
-catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog", 1)
+catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog")
 
 
 # Обходим весь каталог с открытием сайта и сохранением всех ссылок в виде словаря
