@@ -42,7 +42,7 @@ def delete_unknown_chapter(counter: int, list_with_chapter: list):
     return list_with_chapter
 
 
-def push_button_open_catalog(site:str):
+def push_button_open_catalog(site):
     """
     Функция нажимает на кнопки для открытия свёрнутых подкаталогов. Кнопка "Ещё(кол-во элементов)"
     :param site: Ссылка на страницу каталога
@@ -51,23 +51,16 @@ def push_button_open_catalog(site:str):
     my_driver_for_open_site = Service("C:\\Games\\python\\Parsing_Shop\\ChromeDriver\\chromedriver.exe")
     driver_site = webdriver.Chrome(service=my_driver_for_open_site)
 
-    try:
-        driver_site.get(site)
+    driver_site.get(site)
+    time.sleep(2)
+    list_with_find_button = driver_site.find_elements(By.CLASS_NAME, "CatalogCategories_link__k1wbv")
+    for button in list_with_find_button:
+        button.click()
         time.sleep(2)
-        list_with_find_button = driver_site.find_elements(By.CLASS_NAME, "CatalogCategories_link__k1wbv")
-        for button in list_with_find_button:
-            button.click()
-            time.sleep(2)
-        page_source = driver_site.page_source
-        soup = BeautifulSoup(page_source, "lxml")
-        print(soup)
-        return soup
-    except Exception as ex:
-        print(ex)
-    finally:
-        driver_site.close()
-        driver_site.quit()
-
+    response = requests.get(site, headers=headers)  # Получаем ответ от сайта
+    page_source = driver_site.page_source
+    soup = BeautifulSoup(page_source, "lxml")
+    return soup
 
 def create_catalog(soup, counter_del):
     """
@@ -110,8 +103,12 @@ def create_soup_for_catalog_production(site: str, delete_chapter: int):
     :param site: Основной сайт магазина
     :return: Возвращает словарь из названия разделов и ссылок
     """
-    response = requests.get(site, headers=headers)  # Получаем ответ от сайта
-    soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
+
+    if delete_chapter == 2:
+        response = requests.get(site, headers=headers)  # Получаем ответ от сайта
+        soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
+    else:
+        soup = push_button_open_catalog(site)
     all_links = soup.findAll('a')  # ищем все ссылки
     # складываем ссылки разделов и названия разделов в списки
     return create_catalog(all_links, delete_chapter)
