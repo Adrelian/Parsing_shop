@@ -1,8 +1,9 @@
-import re
-
+import time
 import requests
 from bs4 import BeautifulSoup
-import os
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
 
 # headers взял из своего браузера в запросах, нужен что бы "обмануть" сайт
 headers = {
@@ -41,6 +42,33 @@ def delete_unknown_chapter(counter: int, list_with_chapter: list):
     return list_with_chapter
 
 
+def push_button_open_catalog(site:str):
+    """
+    Функция нажимает на кнопки для открытия свёрнутых подкаталогов. Кнопка "Ещё(кол-во элементов)"
+    :param site: Ссылка на страницу каталога
+    :return:
+    """
+    my_driver_for_open_site = Service("C:\\Games\\python\\Parsing_Shop\\ChromeDriver\\chromedriver.exe")
+    driver_site = webdriver.Chrome(service=my_driver_for_open_site)
+
+    try:
+        driver_site.get(site)
+        time.sleep(2)
+        list_with_find_button = driver_site.find_elements(By.CLASS_NAME, "CatalogCategories_link__k1wbv")
+        for button in list_with_find_button:
+            button.click()
+            time.sleep(2)
+        page_source = driver_site.page_source
+        soup = BeautifulSoup(page_source, "lxml")
+        print(soup)
+        return soup
+    except Exception as ex:
+        print(ex)
+    finally:
+        driver_site.close()
+        driver_site.quit()
+
+
 def create_catalog(soup, counter_del):
     """
     Функция создания каталога изделий
@@ -50,6 +78,8 @@ def create_catalog(soup, counter_del):
     """
     links = []  # Лист для ссылок
     titles = []  # Лист для заголовков каталога
+    # Перебираем все элементы soup для поиска ссылок и названий раздела каталога
+
     for item in soup:
         link_url = item.get("href")
         links.append(link_url)
@@ -94,6 +124,7 @@ print(status)
 # Получаем общий каталог сайта
 catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 2)
 cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 3)
+print(cable)
 # lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 3)
 # electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 3)
 # low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 3)
@@ -112,3 +143,4 @@ cable = create_soup_for_catalog_production(catalog_etm["Кабели, прово
 # Pumps_tanks_and_tanks = create_soup_for_catalog_production(catalog_etm["Насосы, баки и емкости"], 3)
 # Related_products = create_soup_for_catalog_production(catalog_etm["Сопутствующие товары"], 3)
 # Software = create_catalog_production(create_soup_for_catalog_production["Программное обеспечение"], 3)
+
