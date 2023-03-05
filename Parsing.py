@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
+import json
 
 # headers взял из своего браузера в запросах, нужен, что бы "обмануть" сайт
 headers = {
@@ -111,9 +112,11 @@ status = check_site(url_of_ETM, headers)
 
 # Получаем общий каталог сайта
 catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 1)
-cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 2)
-lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 2)
-electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 2)
+# cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 2)
+# lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 2)
+# electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 2)
+with open("Catalog/catalog_etm.json", "w") as file:
+    json.dump(catalog_etm, file, indent=4, ensure_ascii=False)
 # low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 2)
 # panel_equipment = create_soup_for_catalog_production(catalog_etm["Щитовое оборудование"], 2)
 # heating_and_climate = create_soup_for_catalog_production(catalog_etm["Отопление и климат"], 2)
