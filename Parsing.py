@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-import json
+
 
 # headers взял из своего браузера в запросах, нужен, что бы "обмануть" сайт
 headers = {
@@ -48,6 +48,8 @@ def push_button_open_catalog(site):
         button.click()
         time.sleep(1)
     page_source = driver_site.page_source
+    driver_site.close()
+    driver_site.quit()
     return page_source
 
 
@@ -72,14 +74,14 @@ def create_catalog(all_catalog, type_catalog=1):
         except:
             pass
     # Создать каталог
-    catalog = dict(zip(titles, links))
+    catalog_with_title_and_links = dict(zip(titles, links))
     # Если ссылка не имела слова catalog вначале, 2о нужно его добавить
-    for link in catalog:
+    for link in catalog_with_title_and_links:
         if type_catalog != 1:
-            catalog[link] = "https://www.etm.ru/catalog/" + catalog[link]  # ссылки на подкаталоги
+            catalog_with_title_and_links[link] = "https://www.etm.ru/catalog/" + catalog_with_title_and_links[link]  # ссылки на подкаталоги
         else:
-            catalog[link] = "https://www.etm.ru" + catalog[link]  # ссылки на основной каталог
-    return catalog
+            catalog_with_title_and_links[link] = "https://www.etm.ru" + catalog_with_title_and_links[link]  # ссылки на основной каталог
+    return catalog_with_title_and_links
 
 
 def create_soup_for_catalog_production(site: str, type_catalog=1):
@@ -111,25 +113,13 @@ def create_soup_for_catalog_production(site: str, type_catalog=1):
 status = check_site(url_of_ETM, headers)
 
 # Получаем общий каталог сайта
-catalog_etm = create_soup_for_catalog_production("https://www.etm.ru/catalog", 1)
-# cable = create_soup_for_catalog_production(catalog_etm["Кабели, провода и изделия для прокладки кабеля"], 2)
-# lighting_products = create_soup_for_catalog_production(catalog_etm["Светотехнические изделия"], 2)
-# electrical_installation_products = create_soup_for_catalog_production(catalog_etm["Изделия электроустановочные"], 2)
-with open("Catalog/catalog_etm.json", "w") as file:
-    json.dump(catalog_etm, file, indent=4, ensure_ascii=False)
-# low_voltage_equipment = create_soup_for_catalog_production(catalog_etm["Оборудование низковольтное"], 2)
-# panel_equipment = create_soup_for_catalog_production(catalog_etm["Щитовое оборудование"], 2)
-# heating_and_climate = create_soup_for_catalog_production(catalog_etm["Отопление и климат"], 2)
-# tools_equipment_and_protective_equipment = create_soup_for_catalog_production(catalog_etm["Инструмент, оснастка и средства защиты"], 2)
-# workwear_and_PPE = create_soup_for_catalog_production(catalog_etm["Спецодежда и СИЗ"], 2)
-# Automation_instrumentation = create_soup_for_catalog_production(catalog_etm["Автоматизация, КИП"], 2)
-# Equipment_6_10kV = create_soup_for_catalog_production(catalog_etm["Оборудование 6-10кВ"], 2)
-# Security_systems = create_soup_for_catalog_production(catalog_etm["Системы безопасности"], 2)
-# Telecommunication_quipment_and_SCS = create_soup_for_catalog_production(catalog_etm["Телекоммуникационное оборудование и СКС"], 2)
-# Bearings = create_soup_for_catalog_production(catalog_etm["Подшипники"], 2)
-# Hardware_and_construction_fasteners = create_soup_for_catalog_production(catalog_etm["Метизы и строительный крепеж"], 2)
-# Pipeline_systems = create_soup_for_catalog_production(catalog_etm["Трубопроводные системы"], 2)
-# Shut_off_and_control_valves = create_soup_for_catalog_production(catalog_etm["Запорная и регулирующая арматура"], 2)
-# Pumps_tanks_and_tanks = create_soup_for_catalog_production(catalog_etm["Насосы, баки и емкости"], 2)
-# Related_products = create_soup_for_catalog_production(catalog_etm["Сопутствующие товары"], 2)
-# Software = create_catalog_production(create_soup_for_catalog_production["Программное обеспечение"], 2)
+catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog", 1)
+
+
+# Обходим весь каталог с открытием сайта и сохранением всех ссылок в виде словаря
+for title, link in catalog.items():
+    all_chapter_from_site = create_soup_for_catalog_production(link, 2)
+    # Создаём файл КАКОГО ТО ФОРМАТА для записи всех ссылок и названий
+
+
+
