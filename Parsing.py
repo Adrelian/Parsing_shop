@@ -1,5 +1,6 @@
 import time
 import requests
+import json
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -114,12 +115,35 @@ status = check_site(url_of_ETM, headers)
 
 # Получаем общий каталог сайта
 catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog")
-
-
 # Обходим весь каталог с открытием сайта и сохранением всех ссылок в виде словаря
+all_chapter_from_site = []
 for title, link in catalog.items():
     all_chapter_from_site = create_soup_for_catalog_production(link, 2)
-    # Создаём файл КАКОГО ТО ФОРМАТА для записи всех ссылок и названий
 
+
+# Сохранение основных разделов сайта в формат JSON
+def write_main_catalog(data_catalog):
+    data_catalog = json.dumps(data_catalog)
+    data_catalog = json.loads(data_catalog)
+    with open("catalog_shop.json", "w", encoding='utf-8') as file:
+        json.dump(data_catalog, file, indent=4, ensure_ascii=False)
+
+
+# Сохранение подкаталогов в файл каталогов
+def create_sub_catalog(data_catalog):
+    with open("sub_catalog_shop.json", "w", encoding='utf-8') as file:
+        json.dump("sub_catalog_shop.json", file, indent=4, ensure_ascii=False)
+
+    with open("sub_catalog_shop.json", encoding='utf-8') as file:
+        all_data_file = json.load(file)
+        for item in all_chapter_from_site:
+            all_data_file.append(item)
+        with open("sub_catalog_shop.json", "w", encoding="utf-8") as outfile:
+            json.dump(all_data_file, outfile, ensure_ascii=False, indent=4)
+
+
+
+write_main_catalog(catalog)
+create_sub_catalog(all_chapter_from_site)
 
 
