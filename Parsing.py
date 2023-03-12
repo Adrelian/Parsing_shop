@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-
+import os
 
 # headers взял из своего браузера в запросах, нужен, что бы "обмануть" сайт
 headers = {
@@ -65,7 +65,6 @@ def create_catalog(all_catalog, type_catalog=1):
     links = []  # Лист для ссылок
 
     # Перебираем все элементы soup для поиска ссылок и названий раздела каталога
-
     for item in all_catalog:
         item_text = item.text
         item_href = item.find("a").get("href")
@@ -79,9 +78,11 @@ def create_catalog(all_catalog, type_catalog=1):
     # Если ссылка не имела слова catalog вначале, 2о нужно его добавить
     for link in catalog_with_title_and_links:
         if type_catalog != 1:
-            catalog_with_title_and_links[link] = "https://www.etm.ru/catalog/" + catalog_with_title_and_links[link]  # ссылки на подкаталоги
+            # ссылки на подкаталоги
+            catalog_with_title_and_links[link] = "https://www.etm.ru/catalog/" + catalog_with_title_and_links[link]
         else:
-            catalog_with_title_and_links[link] = "https://www.etm.ru" + catalog_with_title_and_links[link]  # ссылки на основной каталог
+            # ссылки на основной каталог
+            catalog_with_title_and_links[link] = "https://www.etm.ru" + catalog_with_title_and_links[link]
     return catalog_with_title_and_links
 
 
@@ -93,15 +94,10 @@ def create_soup_for_catalog_production(site: str, type_catalog=1):
     :param site: Основной сайт магазина
     :return: возвращает словарь из названия разделов и ссылок
     """
-
-    # response = requests.get(site, headers=headers)  # Получаем ответ от сайта
-    # soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
-    # all_links = soup.findAll('a')  # ищем все ссылки
-
     if type_catalog == 1:
         response = requests.get(site, headers=headers)  # Получаем ответ от сайта
         soup = BeautifulSoup(response.content, "lxml")  # Варим суп и получаем весь сайт с каталогами
-        all_catalog = soup.findAll(class_ = "CatalogCategories_card__Y8sOG")  # ищем ссылки в основном каталоге
+        all_catalog = soup.findAll(class_="CatalogCategories_card__Y8sOG")  # ищем ссылки в основном каталоге
 
     else:
         create_page = push_button_open_catalog(site)
@@ -113,37 +109,28 @@ def create_soup_for_catalog_production(site: str, type_catalog=1):
 # Проверяем сайт на отклик состояния. Если 200 всё ОК, если другое число, то читаем документацию в этому числу
 status = check_site(url_of_ETM, headers)
 
-# Получаем общий каталог сайта
-catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog")
-# Обходим весь каталог с открытием сайта и сохранением всех ссылок в виде словаря
-all_chapter_from_site = []
-for title, link in catalog.items():
-    all_chapter_from_site = create_soup_for_catalog_production(link, 2)
-
 
 # Сохранение основных разделов сайта в формат JSON
-def write_main_catalog(data_catalog):
-    data_catalog = json.dumps(data_catalog)
-    data_catalog = json.loads(data_catalog)
-    with open("catalog_shop.json", "w", encoding='utf-8') as file:
-        json.dump(data_catalog, file, indent=4, ensure_ascii=False)
+def write_catalog():
+    # Получаем общий каталог сайта
+    catalog = create_soup_for_catalog_production("https://www.etm.ru/catalog")
+    # Создаёт папку Catalog для хранения JSON файлов
+    try:
+        os.mkdir("Catalog")
+    except:
+        pass
+    # Сохраняем в JSON основной каталог сайта
+    with open("Catalog/catalog_shop.json", "w", encoding='utf-8') as file:
+        json.dump(catalog, file, indent=4, ensure_ascii=False)
+    # Сохраняем в JSON основной каталог сайта все подкаталоги сайта
+    all_chapter_from_site = {}
+    for link in catalog.values():
+        sub_link = create_soup_for_catalog_production(link, 2)
+        all_chapter_from_site.update(sub_link)
+    with open("Catalog/sub_catalog_shop.json", "w", encoding='utf-8') as file:
+        json.dump(all_chapter_from_site, file, indent=4, ensure_ascii=False)
 
 
-# Сохранение подкаталогов в файл каталогов
-def create_sub_catalog(data_catalog):
-    with open("sub_catalog_shop.json", "w", encoding='utf-8') as file:
-        json.dump("sub_catalog_shop.json", file, indent=4, ensure_ascii=False)
-
-    with open("sub_catalog_shop.json", encoding='utf-8') as file:
-        all_data_file = json.load(file)
-        for item in all_chapter_from_site:
-            all_data_file.append(item)
-        with open("sub_catalog_shop.json", "w", encoding="utf-8") as outfile:
-            json.dump(all_data_file, outfile, ensure_ascii=False, indent=4)
-
-
-
-write_main_catalog(catalog)
-create_sub_catalog(all_chapter_from_site)
-
+# Создаём файл JSON с каталогами всех разделов сайта
+write_catalog()
 
