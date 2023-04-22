@@ -9,24 +9,17 @@ def take_unique_id_from_site():
     Функция получается уникальный ID, который присваивает сайт входящему запросу
     :return: вернуть значение уникального ID
     """
+    # Создание супа
     url = "https://www.etm.ru/"
     headers = header
     response = requests.get(url, headers=headers)
     content = response.content
     soup = BeautifulSoup(content, "lxml")
+    # Поиск Id
+    data = soup.find("body").find("script").text  # простыня с данными с сайта в виде текста
+    data_dict = json.loads(data)  # Превратить в словарь
+    build_id_etm = data_dict['buildId']  # Найти Id
 
-    data = soup.find("body").find("script")  # простыня с данными с сайта
-    str_data = str(data)
-    user_id = "buildId"  # Искомый тэг
-
-    index = str_data.find(user_id)  # Индекс первого символа строки
-
-    # Находим индекс первой кавычки после ключа "buildId"
-    start_index = str_data.find('"', index + len(user_id) + 2)
-    # Находим индекс второй кавычки после ключа "buildId"
-    end_index = str_data.find('"', start_index + 1)
-    # Извлекаем значение ключа "buildId"
-    build_id_etm = str_data[start_index + 1:end_index]
     return build_id_etm
 
 
@@ -67,7 +60,6 @@ def take_data_about_goods(object_data_goods):
     with open("example/data_goods_from_etm.json", 'w', encoding='utf-8') as data_file:
         data_unit = {}  # пустой словарь для сбора данных
         # сбор определённых значений о товаре
-        manufacturer = None
         for item in object_data_goods:
             name = item.get("name")  # описание товара
             price = item.get("price98")  # розничная цена
@@ -91,7 +83,6 @@ def take_data_about_unit():
         with open("Example/data_goods_from_Eplan.json", 'r', encoding='utf-8') as file:
             data = json.load(file)
         order_list = list(data.keys())
-
 
         return order_list
     except:
