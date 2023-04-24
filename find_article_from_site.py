@@ -2,7 +2,8 @@ import json
 from cookies_and_headers import cookie, header
 import requests
 from bs4 import BeautifulSoup
-
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
 
 def take_unique_id_from_site():
     """
@@ -23,15 +24,15 @@ def take_unique_id_from_site():
     return build_id_etm
 
 
-def get_data_from_etm(dict_order_numbers, build_id_from_site):
+def get_data_from_etm(dict_order_numbers, build_id_etm):
     """
     Функция собирает данные о товарах на сайте ЕТМ. Поиск по артикулу товара
     :param dict_order_numbers: Словарь с данными обо всех товарах
-    :param build_id_from_site: Уникальный ID пользователя, который выдает сайт
+    :param build_id_etm: Уникальный ID пользователя, который выдает сайт
     :return: простыня с данными о товарах
     """
     all_data = []  # Пустой список для сбора всех данных
-    for order_number in dict_order_numbers.keys():
+    for order_number in dict_order_numbers:
 
         # Системные данные для запроса
         params = {
@@ -41,7 +42,7 @@ def get_data_from_etm(dict_order_numbers, build_id_from_site):
         }
         # Запрос
         response = requests.get(
-            f'https://www.etm.ru/_next/data/{build_id_from_site}/catalog.json',
+            f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json',
             params=params,
             cookies=cookie,
             headers=header,
@@ -50,31 +51,35 @@ def get_data_from_etm(dict_order_numbers, build_id_from_site):
 
         # Каждый элемент в data_goods - словарь, нужно проверять производителя
         for item in data_goods:
-            if item["mnf_name"] == "КВТ":
-                print(item)
-        # all_data = all_data + data_goods  # конечный список с данными о всех искомых товарах
-
+            if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
+                all_data.append(item)  # конечный список с данными о всех искомых товарах
+            # Если нет производителя, то сравниваем тип изделия
+            elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 90:
+                all_data.append(item)
+    print(all_data)
     return all_data
 
 
-def take_data_about_goods(object_data_goods):
+def take_data_about_goods(all_data):
     """
     Функция парсит полученную с сайта простыню с данными
-    :param object_data_goods: Простыня с данным о товаре
+    :param all_data: Простыня с данным о товаре
     :return: Словарь с основным ключом артикулом и остальной информацией в подсловарях
     """
     with open("example/data_goods_from_etm.json", 'w', encoding='utf-8') as data_file:
         data_unit = {}  # пустой словарь для сбора данных
         # сбор определённых значений о товаре
-        for item in object_data_goods:
+        for item in all_data:
             name = item.get("name")  # описание товара
+            quantity_in_package = item.get("pack")  # кол-во изделий в паковке
             price = item.get("price98")  # розничная цена
             sale_price = item.get("price")  # цена со всеми скидками
             code = item.get("code")  # код заказа етм
-            manufacturer_name = item.get("mnf_name")  # производитель
+            name_manufacturer = item.get("mnf_name")  # производитель
             article_number = item.get("art")  # заказной номер
 
-            data_unit[article_number] = {"name": name, "manufacturer_name": manufacturer_name, "etm_code": code,
+            data_unit[article_number] = {"name": name, "manufacturer_name": name_manufacturer,
+                                         "quantity_in_package": quantity_in_package, "etm_code": code,
                                          "price_retail": price, "price_max_discount": sale_price}
 
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
