@@ -27,16 +27,16 @@ def take_data_from_xml_eplan(address_file):
             price_with_discount = part_data.attrib.get(
                 "P_ARTICLE_PURCHASEPRICE_1")  # Стоимость товара со всеми скидками: Закупочная цена/Единица цены
             weight = part_data.attrib.get("P_ARTICLE_WEIGHT")  # Вес
-            quantity_in_package = part_data.attrib.get("quantity/package")  # Количество/упаковка
+            quantity_in_package = part_data.attrib.get("P_ARTICLE_PACKAGINGQUANTITY")  # Количество/упаковка
             ETM_code = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
             code_second_site = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
             code_third_site = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
 
             # Сбор данных об изделии в один словарь
             data_unit[article_part_number] = dict(name=desc1, order_type=article_type,
-                                                  name_manufacturer=name_manufacturer, price=price,
-                                                  price_with_discount=price_with_discount, weight=weight,
-                                                   quantity_in_package=quantity_in_package, ETM_code=ETM_code,
+                                                  name_manufacturer=name_manufacturer, price_retail=price,
+                                                  price_max_discount=price_with_discount, weight=weight,
+                                                  quantity_in_package=quantity_in_package, ETM_code=ETM_code,
                                                   code_second_site=code_second_site, code_third_site=code_third_site)
 
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
@@ -44,21 +44,24 @@ def take_data_from_xml_eplan(address_file):
         return data_unit
 
 
-def compare_data_from_site_with_date_from_eplan(eplan_data, etm_date, site_date_1=None, site_date_2=None,
-                                                site_date_3=None):
-    pass
+def take_data_from_json():
+    """Функция получает данные из файлов JSON"""
+    with open("Example/data_goods_from_ETM.json", 'r', encoding='utf-8') as etm_data_file:
+        data_from_etm = json.load(etm_data_file)
+    with open("Example/data_goods_from_Eplan.json", "r", encoding='utf-8') as eplan_data_file:
+        data_from_eplan = json.load(eplan_data_file)
+    for item in data_from_etm.values():
+        for item2 in data_from_eplan.values():
+            print(item2)
 
 
-def send_data_to_Eplan():
+def send_data_to_eplan():
     """
     Берём данные полученные с сайта и сохраняем в файл для Eplan
     :return:
     """
-    with open("Example/data_goods_from_ETM.json", 'r', encoding='utf-8') as finish_data_file:
-        data = json.load(finish_data_file)
-        for item in data.values():
-            print(item)
+    None
 
 
-data_from_eplan = take_data_from_xml_eplan(xml_file)
-send_data_to_Eplan()
+data_eplan = take_data_from_xml_eplan(xml_file)
+take_data_from_json()
