@@ -26,16 +26,18 @@ def take_data_from_xml_eplan(address_file):
             price = part_data.attrib.get("P_ARTICLE_PRICEUNIT")  # Стоимость: Цена единицы
             price_with_discount = part_data.attrib.get(
                 "P_ARTICLE_PURCHASEPRICE_1")  # Стоимость товара со всеми скидками: Закупочная цена/Единица цены
+            weight = part_data.attrib.get("P_ARTICLE_WEIGHT")  # Вес
+            quantity_in_package = part_data.attrib.get("quantity/package")  # Количество/упаковка
             ETM_code = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
             code_second_site = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
             code_third_site = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
 
             # Сбор данных об изделии в один словарь
-            data_unit[article_part_number] = {"name": desc1, "order_type": article_type,
-                                              "name_manufacturer": name_manufacturer, "price": price,
-                                              "price_with_discount": price_with_discount, "ETM_code": ETM_code,
-                                              "code_second_site": code_second_site, "code_third_site": code_third_site
-                                              }
+            data_unit[article_part_number] = dict(name=desc1, order_type=article_type,
+                                                  name_manufacturer=name_manufacturer, price=price,
+                                                  price_with_discount=price_with_discount, weight=weight,
+                                                   quantity_in_package=quantity_in_package, ETM_code=ETM_code,
+                                                  code_second_site=code_second_site, code_third_site=code_third_site)
 
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
 

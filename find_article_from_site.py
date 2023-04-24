@@ -23,15 +23,16 @@ def take_unique_id_from_site():
     return build_id_etm
 
 
-def get_data_from_etm(list_order_numbers, build_id_from_site):
+def get_data_from_etm(dict_order_numbers, build_id_from_site):
     """
     Функция собирает данные о товарах на сайте ЕТМ. Поиск по артикулу товара
+    :param dict_order_numbers: Словарь с данными обо всех товарах
     :param build_id_from_site: Уникальный ID пользователя, который выдает сайт
-    :type list_order_numbers: лист с данными для поиска на сайте
     :return: простыня с данными о товарах
     """
     all_data = []  # Пустой список для сбора всех данных
-    for order_number in list_order_numbers:
+    for order_number in dict_order_numbers.keys():
+
         # Системные данные для запроса
         params = {
             'page': '1',
@@ -46,7 +47,12 @@ def get_data_from_etm(list_order_numbers, build_id_from_site):
             headers=header,
         ).json()
         data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
-        all_data = all_data + data_goods  # конечный список с данными о всех искомых товарах
+
+        # Каждый элемент в data_goods - словарь, нужно проверять производителя
+        for item in data_goods:
+            if item["mnf_name"] == "КВТ":
+                print(item)
+        # all_data = all_data + data_goods  # конечный список с данными о всех искомых товарах
 
     return all_data
 
@@ -82,9 +88,7 @@ def take_data_about_unit():
     try:
         with open("Example/data_goods_from_Eplan.json", 'r', encoding='utf-8') as file:
             data = json.load(file)
-        order_list = list(data.keys())
-
-        return order_list
+        return data
     except:
         alarm_massage = "Нет файла с данными от Eplan"
         print(alarm_massage)
