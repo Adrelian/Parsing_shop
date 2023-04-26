@@ -50,14 +50,20 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
         ).json()
         data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
 
-        # Каждый элемент в data_goods - словарь, нужно проверять производителя
+        # Возможные способы проверки полученных данных на валидность
         for item in data_goods:
+            # Сравниваем заказной номер и производителя
             if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
-                all_data.append(item)  # конечный список с данными о всех искомых товарах
+                all_data.append(item)
+                break
             # Если нет производителя, то сравниваем тип изделия
             # или неточное сравнение имени (описания на сайте) с типом изделия из Eplan
             elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 90:
                 all_data.append(item)
+                break
+            # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
+            elif None:
+                pass
 
     return all_data
 

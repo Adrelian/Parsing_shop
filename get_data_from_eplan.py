@@ -45,7 +45,7 @@ def take_data_from_xml_eplan(address_file):
 
 
 def take_data_from_json():
-    """Функция получает данные из файлов JSON"""
+    """Функция получает данные из файлов JSON и переносит даные одного файла в другой"""
     with open("Example/data_goods_from_ETM.json", 'r', encoding='utf-8') as etm_data_file:
         data_from_etm = json.load(etm_data_file)
     with open("Example/data_goods_from_Eplan.json", "r", encoding='utf-8') as eplan_data_file:
