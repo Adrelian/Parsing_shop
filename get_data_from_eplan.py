@@ -50,9 +50,8 @@ def take_data_from_json():
         data_from_etm = json.load(etm_data_file)
     with open("Example/data_goods_from_Eplan.json", "r", encoding='utf-8') as eplan_data_file:
         data_from_eplan = json.load(eplan_data_file)
-    for item in data_from_etm.values():
-        for item2 in data_from_eplan.values():
-            print(item2)
+
+
 
 
 def send_data_to_eplan():
