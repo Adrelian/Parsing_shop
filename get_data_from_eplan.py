@@ -44,23 +44,44 @@ def take_data_from_xml_eplan(address_file):
         return data_unit
 
 
-def take_data_from_json():
-    """Функция получает данные из файлов JSON и переносит даные одного файла в другой"""
+def find_different_between_eplan_and_etm():
+    """Функция получает данные из файлов JSON и переносит данные одного файла в другой"""
     with open("Example/data_goods_from_ETM.json", 'r', encoding='utf-8') as etm_data_file:
         data_from_etm = json.load(etm_data_file)
     with open("Example/data_goods_from_Eplan.json", "r", encoding='utf-8') as eplan_data_file:
         data_from_eplan = json.load(eplan_data_file)
 
+    eplan_article_number = list(data_from_eplan.keys())  # Заказные номера из Eplan
+    etm_article_number = list(data_from_etm.keys())  # Заказные номера и ETM
+
+    fault_search = set()  # Множество ошибок поиска
+
+    # Поиск отличий между Eplan и ETM
+    for article_number in eplan_article_number:
+        if article_number not in etm_article_number:
+            fault_search.add(article_number)
+
+    return fault_search
 
 
-
-def send_data_to_eplan():
+def send_data_to_eplan(address_file):
     """
     Берём данные полученные с сайта и сохраняем в файл для Eplan
     :return:
     """
-    None
+    # Создаём дерево файла для парсинга
+    tree = ET.parse(address_file)
+    root = tree.getroot()
+
+    counter = 0
+    # Изменяем цену в XML файл
+    for item in root.iter("part"):
+        item.set("P_ARTICLE_PRICEUNIT", str(counter))
+        counter += 1
+    # Записываем в XML полученные изменения
+    tree.write("output.xml", encoding='utf-8')
 
 
-data_eplan = take_data_from_xml_eplan(xml_file)
-take_data_from_json()
+data_eplan = take_data_from_xml_eplan(xml_file)  # Данные из XML файла eplan (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
+fault_find_article = find_different_between_eplan_and_etm()  # Список с артикулами, которые не смог найти
+send_data_to_eplan("Example/Устройства КВТ.xml")

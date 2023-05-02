@@ -3,8 +3,6 @@ from cookies_and_headers import cookie, header
 import requests
 from bs4 import BeautifulSoup
 from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
-
 
 def take_unique_id_from_site():
     """
@@ -38,7 +36,7 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
         # Системные данные для запроса
         params = {
             'page': '1',
-            'rows': '12',
+            'rows': '36',
             'searchValue': order_number,
         }
         # Запрос
