@@ -23,9 +23,9 @@ def take_data_from_xml_eplan(address_file):
             article_type = part_data.attrib.get("P_ARTICLE_TYPENR")  # Тип изделия: Номер типа
             article_part_number = part_data.attrib.get("P_ARTICLE_ORDERNR")  # Артикул: Номер для заказа
             name_manufacturer = part_data.attrib.get("P_ARTICLE_MANUFACTURER")  # Имя производителя: Производитель
-            price = part_data.attrib.get("P_ARTICLE_PRICEUNIT")  # Стоимость: Цена единицы
+            price = part_data.attrib.get("P_ARTICLE_PURCHASEPRICE_1")  # Закупочная цена/единица цены (Валюта 1)
             price_with_discount = part_data.attrib.get(
-                "P_ARTICLE_PURCHASEPRICE_1")  # Стоимость товара со всеми скидками: Закупочная цена/Единица цены
+                "P_ARTICLE_PURCHASEPRICE_2")  # Закупочная цена/единица цены (Валюта 2)
             weight = part_data.attrib.get("P_ARTICLE_WEIGHT")  # Вес
             quantity_in_package = part_data.attrib.get("P_ARTICLE_PACKAGINGQUANTITY")  # Количество/упаковка
             ETM_code = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
@@ -73,11 +73,20 @@ def send_data_to_eplan(address_file):
     tree = ET.parse(address_file)
     root = tree.getroot()
 
-    counter = 0
-    # Изменяем цену в XML файл
-    for item in root.iter("part"):
-        item.set("P_ARTICLE_PRICEUNIT", str(counter))
-        counter += 1
+    # Открытие файла с найденными ценами
+    with open("Example/data_goods_from_ETM.json", "r", encoding='utf-8') as data:
+        data_etm = json.load(data)
+
+    # Перенос цен в файл XML
+    for item_with_price in data_etm:
+        for item_eplan in root.iter("part"):
+            if item_with_price == item_eplan.attrib.get("P_ARTICLE_ORDERNR"):
+                print(f"Артикул файла ЕТМ {item_with_price} равен артикулу Eplana {item_eplan.attrib.get('P_ARTICLE_ORDERNR')}")
+                price1 = data_etm[item_with_price]["price_retail"]  # Цена 1
+                item_eplan.set("P_ARTICLE_PURCHASEPRICE_1", str(price1))
+                price2 = data_etm[item_with_price]["price_max_discount"]  # Цена 2
+                item_eplan.set("P_ARTICLE_PURCHASEPRICE_2", str(price2))
+
     # Записываем в XML полученные изменения
     tree.write("output.xml", encoding='utf-8')
 
