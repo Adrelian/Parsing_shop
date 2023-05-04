@@ -1,17 +1,19 @@
 import json
 import xml.etree.ElementTree as ET
+import xlrd
 
 xml_file = 'Example/Устройства КВТ.xml'
+excel_file = 'Example/Спецификация Электрика.xls'
 
 
-def take_data_from_xml_eplan(address_file):
+def take_data_from_xml_eplan(address_file_xml):
     """
     Функция собирает нужные данные из xml файла для последующего поиска этих данных на сайте
-    :param address_file: ссылка на файл XML
+    :param address_file_xml: ссылка на файл XML
     :return:
     """
     # Создаём дерево файла для парсинга
-    tree = ET.parse(address_file)
+    tree = ET.parse(address_file_xml)
     root = tree.getroot()
 
     # Перебираем файл для получения нужно информации
@@ -42,6 +44,31 @@ def take_data_from_xml_eplan(address_file):
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
 
         return data_unit
+
+
+def take_data_from_excel(adress_file_excel):
+    excel_data = xlrd.open_workbook(adress_file_excel)  # Открыть файл
+    page = excel_data.sheet_by_index(0)  # Открыть первый лист
+
+    with open("Example/data_goods_from_Eplan_Excel.json", 'w', encoding='utf-8') as data_file:
+        data_unit = {}  # Пустой словарь для сбора данных об изделиях
+
+        for column in range(4, page.nrows):
+            article = page.cell_value(column, 1)
+            # Сборка всех производителей
+            manufacturer = page.cell_value(column, 2)
+            # Производитель
+            number_type = page.cell_value(column, 3)
+            # Кол-во изделий
+            quantity = page.cell_value(column, 4)
+            # Описание изделий
+            name = page.cell_value(column, 5)
+            # Создание словаря
+            data_unit[article] = dict(name=name, order_type=number_type, name_manufacturer=manufacturer,
+                                      price_retail="", price_max_discount="", quantity=quantity)
+        json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
+
+    return data_unit
 
 
 def find_different_between_eplan_and_etm():
@@ -81,7 +108,6 @@ def send_data_to_eplan(address_file):
     for item_with_price in data_etm:
         for item_eplan in root.iter("part"):
             if item_with_price == item_eplan.attrib.get("P_ARTICLE_ORDERNR"):
-                print(f"Артикул файла ЕТМ {item_with_price} равен артикулу Eplana {item_eplan.attrib.get('P_ARTICLE_ORDERNR')}")
                 price1 = data_etm[item_with_price]["price_retail"]  # Цена 1
                 item_eplan.set("P_ARTICLE_PURCHASEPRICE_1", str(price1))
                 price2 = data_etm[item_with_price]["price_max_discount"]  # Цена 2
@@ -91,6 +117,7 @@ def send_data_to_eplan(address_file):
     tree.write("output.xml", encoding='utf-8')
 
 
+take_data_from_excel(excel_file)
 data_eplan = take_data_from_xml_eplan(xml_file)  # Данные из XML файла eplan (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
 fault_find_article = find_different_between_eplan_and_etm()  # Список с артикулами, которые не смог найти
 send_data_to_eplan("Example/Устройства КВТ.xml")

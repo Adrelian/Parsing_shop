@@ -46,23 +46,25 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
             cookies=cookie,
             headers=header,
         ).json()
-        data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
+        try:
+            data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
 
-        # Возможные способы проверки полученных данных на валидность
-        for item in data_goods:
-            # Сравниваем заказной номер и производителя
-            if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
-                all_data.append(item)
-                break
-            # Если нет производителя, то сравниваем тип изделия
-            # или неточное сравнение имени (описания на сайте) с типом изделия из Eplan
-            elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 90:
-                all_data.append(item)
-                break
-            # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
-            elif None:
-                pass
-
+            # Возможные способы проверки полученных данных на валидность
+            for item in data_goods:
+                # Сравниваем заказной номер и производителя
+                if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
+                    all_data.append(item)
+                    break
+                # Если нет производителя, то сравниваем тип изделия
+                # или неточное сравнение имени (описания на сайте) с типом изделия из Eplan
+                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 50:
+                    all_data.append(item)
+                    break
+                # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
+                elif None:
+                    pass
+        except Exception:
+            print("Нет артикула")
     return all_data
 
 
@@ -91,21 +93,25 @@ def take_data_about_goods(all_data):
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
 
 
-def take_data_about_unit():
+def take_data_about_unit(address_file):
     """
     Получение артикулов товара из каталога (файла xml) Eplan
     :return: лист с артикулами товаров
     """
     try:
-        with open("Example/data_goods_from_Eplan.json", 'r', encoding='utf-8') as file:
+        with open(address_file, 'r', encoding='utf-8') as file:
             data = json.load(file)
         return data
     except:
-        alarm_massage = "Нет файла с данными от Eplan"
+        alarm_massage = "Нет файла с данными"
         print(alarm_massage)
 
 
 build_id = take_unique_id_from_site()
-list_order = take_data_about_unit()  # лист с артикулами
-data_about_goods_from_site = get_data_from_etm(list_order, build_id)  # простыня с данными с сайта по артикулам
-take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
+# list_order_xml = take_data_about_unit("Example/data_goods_from_Eplan.json")  # лист с артикулами из XML
+# data_about_goods_from_site = get_data_from_etm(list_order_xml, build_id)  # простыня с данными с сайта по артикулам XML
+# take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
+
+list_order_excel = take_data_about_unit("Example/data_goods_from_Eplan_Excel.json")  # Лист с артикулами из Excel
+data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам Excel
+take_data_about_goods(data_excel_about_goods_from_site)
