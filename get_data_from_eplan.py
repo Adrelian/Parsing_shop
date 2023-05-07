@@ -120,4 +120,4 @@ def send_data_to_eplan(address_file):
 take_data_from_excel(excel_file)
 data_eplan = take_data_from_xml_eplan(xml_file)  # Данные из XML файла eplan (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
 fault_find_article = find_different_between_eplan_and_etm()  # Список с артикулами, которые не смог найти
-send_data_to_eplan("Example/Устройства КВТ.xml")
+# send_data_to_eplan("Example/Устройства КВТ.xml")  # На этапе отладки исключить

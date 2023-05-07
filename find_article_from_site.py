@@ -4,6 +4,7 @@ import requests
 from bs4 import BeautifulSoup
 from fuzzywuzzy import fuzz
 
+
 def take_unique_id_from_site():
     """
     Функция получается уникальный ID, который присваивает сайт входящему запросу
@@ -55,9 +56,13 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
                 if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
                     all_data.append(item)
                     break
+                #  Сравниваем тип изделия с номером на сайте
+                elif item["mnf_name"] == dict_order_numbers[order_number]["order_type"]:
+                    all_data.append(item)
+                    break
                 # Если нет производителя, то сравниваем тип изделия
                 # или неточное сравнение имени (описания на сайте) с типом изделия из Eplan
-                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 50:
+                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 80:
                     all_data.append(item)
                     break
                 # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
