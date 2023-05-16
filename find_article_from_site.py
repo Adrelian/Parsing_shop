@@ -49,27 +49,33 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
         ).json()
         try:
             data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
-
+            mini = 50
             # Возможные способы проверки полученных данных на валидность
             for item in data_goods:
                 # Сравниваем заказной номер и производителя
-                if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] and item["art"] == order_number:
+                if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] \
+                        and item["art"] == order_number:
                     all_data.append(item)
                     break
                 #  Сравниваем тип изделия с номером на сайте
-                elif item["mnf_name"] == dict_order_numbers[order_number]["order_type"]:
+                elif item["name"] == dict_order_numbers[order_number]["order_type"]:
                     all_data.append(item)
                     break
                 # Если нет производителя, то сравниваем тип изделия
-                # или неточное сравнение имени (описания на сайте) с типом изделия из Eplan
-                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] or fuzz.WRatio(item["name"], dict_order_numbers[order_number]["order_type"]) > 80:
+                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"]:
                     all_data.append(item)
+                    break
+                # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan
+                elif fuzz.WRatio(item["name"], order_number) > mini:
+                    item["art"] = order_number
+                    all_data.append(item)
+
                     break
                 # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
                 elif None:
                     pass
         except Exception:
-            print("Нет артикула")
+            print(f"Нет артикула")
     return all_data
 
 
@@ -77,7 +83,7 @@ def take_data_about_goods(all_data):
     """
     Функция парсит полученную с сайта простыню с данными
     :param all_data: Простыня с данным о товаре
-    :return: Словарь с основным ключом артикулом и остальной информацией в подсловарях
+    :return: Словарь с основным ключом артикулом и остальной информацией в словарях
     """
     with open("example/data_goods_from_etm.json", 'w', encoding='utf-8') as data_file:
         data_unit = {}  # пустой словарь для сбора данных
@@ -114,9 +120,10 @@ def take_data_about_unit(address_file):
 
 build_id = take_unique_id_from_site()
 # list_order_xml = take_data_about_unit("Example/data_goods_from_Eplan.json")  # лист с артикулами из XML
-# data_about_goods_from_site = get_data_from_etm(list_order_xml, build_id)  # простыня с данными с сайта по артикулам XML
-# take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
+# data_about_goods_from_site = get_data_from_etm(list_order_xml, build_id)  # простыня с данными с сайта по артикулам
+# XML take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
 
 list_order_excel = take_data_about_unit("Example/data_goods_from_Eplan_Excel.json")  # Лист с артикулами из Excel
-data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам Excel
+data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам
+# Excel
 take_data_about_goods(data_excel_about_goods_from_site)
