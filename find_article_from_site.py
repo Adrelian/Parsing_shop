@@ -51,7 +51,7 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
         try:
             data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
 
-            mini = 65  # Первое значение Коэффициент Танимото
+            mini = 45  # Первое значение Коэффициент Танимото
             maxi = 90  # Второе значение Коэффициент Танимото
             # Возможные способы проверки полученных данных на валидность
             for item in data_goods:
@@ -72,7 +72,7 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
                 # Неточное сравнение имени (описания на сайте) с номером для заказа из Eplan (и производителя)
                 elif fuzz.WRatio(item["name"], order_number) > mini \
                         and fuzz.WRatio(dict_order_numbers[order_number]["name_manufacturer"], item["mnf_name"]) > maxi:
-                    print(f"Алгоритм fuzzy сработал для {order_number}")
+                    print(f"Алгоритм fuzzy сработал с переменной для {order_number}")
                     item["art"] = order_number
                     all_data.append(item)
                     break
@@ -80,7 +80,9 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
                 # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan и производителя
                 elif fuzz.WRatio(item["name"], order_number) > mini \
                         and dict_order_numbers[order_number]["name_manufacturer"] == "":
-                    print(f"Алгоритм fuzzy сработал для {order_number}")
+                    a = fuzz.WRatio(item["name"], order_number)
+                    print(a)
+                    print(f"Алгоритм fuzzy  с числом сработал для {order_number}")
                     item["art"] = order_number
                     all_data.append(item)
                     break

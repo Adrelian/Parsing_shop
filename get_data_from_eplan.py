@@ -54,10 +54,11 @@ def take_data_from_excel(adress_file_excel):
         data_unit = {}  # Пустой словарь для сбора данных об изделиях
 
         for column in range(4, page.nrows):
+            # Номер для заказа
             article = page.cell_value(column, 1)
-            # Сборка всех производителей
-            manufacturer = page.cell_value(column, 2)
             # Производитель
+            manufacturer = page.cell_value(column, 2)
+            # Тип изделия
             number_type = page.cell_value(column, 3)
             # Кол-во изделий
             quantity = page.cell_value(column, 4)
