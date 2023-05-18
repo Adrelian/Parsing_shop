@@ -32,8 +32,8 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
     :return: простыня с данными о товарах
     """
     all_data = []  # Пустой список для сбора всех данных
-    for order_number in dict_order_numbers:
 
+    for order_number in dict_order_numbers:  # Запрос на сайт по артикулу
         # Системные данные для запроса
         params = {
             'page': '1',
@@ -47,35 +47,51 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
             cookies=cookie,
             headers=header,
         ).json()
+        # Попытка прочитать с сайта данные по артикулу
         try:
             data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
-            mini = 50
+
+            mini = 65  # Первое значение Коэффициент Танимото
+            maxi = 90  # Второе значение Коэффициент Танимото
             # Возможные способы проверки полученных данных на валидность
             for item in data_goods:
-                # Сравниваем заказной номер и производителя
-                if item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"] \
-                        and item["art"] == order_number:
-                    all_data.append(item)
-                    break
-                #  Сравниваем тип изделия с номером на сайте
-                elif item["name"] == dict_order_numbers[order_number]["order_type"]:
-                    all_data.append(item)
-                    break
-                # Если нет производителя, то сравниваем тип изделия
-                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"]:
-                    all_data.append(item)
-                    break
-                # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan
-                elif fuzz.WRatio(item["name"], order_number) > mini:
+                # Сравниваем артикул сайта с номером для заказа EPLAN (и производителей)
+                if item["art"] == order_number \
+                        and item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"]:
                     item["art"] = order_number
                     all_data.append(item)
-
                     break
+
+                # Сравниваем тип изделия сайта и тип изделия Eplan (и производителей)
+                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] \
+                        and dict_order_numbers[order_number]["name_manufacturer"] == item["mnf_name"]:
+                    item["art"] = order_number
+                    all_data.append(item)
+                    break
+
+                # Неточное сравнение имени (описания на сайте) с номером для заказа из Eplan (и производителя)
+                elif fuzz.WRatio(item["name"], order_number) > mini \
+                        and fuzz.WRatio(dict_order_numbers[order_number]["name_manufacturer"], item["mnf_name"]) > maxi:
+                    print(f"Алгоритм fuzzy сработал для {order_number}")
+                    item["art"] = order_number
+                    all_data.append(item)
+                    break
+
+                # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan и производителя
+                elif fuzz.WRatio(item["name"], order_number) > mini \
+                        and dict_order_numbers[order_number]["name_manufacturer"] == "":
+                    print(f"Алгоритм fuzzy сработал для {order_number}")
+                    item["art"] = order_number
+                    all_data.append(item)
+                    break
+
                 # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
                 elif None:
                     pass
+
         except Exception:
-            print(f"Нет артикула")
+            print(f"Нет данных на сайте по этому артикулу{dict_order_numbers[order_number]}")
+
     return all_data
 
 
