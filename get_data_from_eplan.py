@@ -2,6 +2,7 @@ import json
 import xml.etree.ElementTree as ET
 import xlrd
 
+
 xml_file = 'Example/Устройства КВТ.xml'
 excel_file = 'Example/Спецификация Электрика.xls'
 data_from_eplan_to_json = "Example/data_goods_Eplan_Excel.json"
@@ -121,15 +122,27 @@ def send_data_to_eplan_xml(address_file):
     tree.write("output.xml", encoding='utf-8')
 
 
-def save_data_eplan_excel():
+def save_data_eplan_excel(file_excel):
     """
     Функция сохраняет полученные данные с сайта в файл Excel со спецификацией
     :return:
     """
     with open("Example/data_goods_from_ETM.json", "r", encoding='utf-8') as data:
         data_etm = json.load(data)
+    workbook = xlrd.open_workbook(file_excel)
+    sheet = workbook["Закупка оборудования"]
+
+    for row in range(sheet.nrows):
+        for col in range(sheet.ncols):
+            if sheet.cell(row, col).value == 'Изделие: Обозначение 1':
+                column = col
+    workbook.inser_cols(column)
+
+
+
+
 
 
 data_eplan_excel = take_data_from_excel_eplan(excel_file, data_from_eplan_to_json) # Получить данные из Excel спецификации (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
 data_eplan_xml = take_data_from_xml_eplan(xml_file)  # Данные из XML файла eplan (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
-
+save_data_eplan_excel(excel_file)
