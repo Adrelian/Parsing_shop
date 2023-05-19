@@ -51,8 +51,6 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
         try:
             data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
 
-            mini = 45  # Первое значение Коэффициент Танимото
-            maxi = 90  # Второе значение Коэффициент Танимото
             # Возможные способы проверки полученных данных на валидность
             for item in data_goods:
                 # Сравниваем артикул сайта с номером для заказа EPLAN (и производителей)
@@ -70,15 +68,15 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
                     break
 
                 # Неточное сравнение имени (описания на сайте) с номером для заказа из Eplan (и производителя)
-                elif fuzz.WRatio(item["name"], order_number) > mini \
-                        and fuzz.WRatio(dict_order_numbers[order_number]["name_manufacturer"], item["mnf_name"]) > maxi:
+                elif fuzz.WRatio(item["name"], order_number) > 70 \
+                        and fuzz.WRatio(dict_order_numbers[order_number]["name_manufacturer"], item["mnf_name"]) > 90:
                     print(f"Алгоритм fuzzy сработал с переменной для {order_number}")
                     item["art"] = order_number
                     all_data.append(item)
                     break
 
                 # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan и производителя
-                elif fuzz.WRatio(item["name"], order_number) > mini \
+                elif fuzz.WRatio(item["name"], order_number) > 70 \
                         and dict_order_numbers[order_number]["name_manufacturer"] == "":
                     a = fuzz.WRatio(item["name"], order_number)
                     print(a)
@@ -99,7 +97,7 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
 
 def take_data_about_goods(all_data):
     """
-    Функция парсит полученную с сайта простыню с данными
+    Функция парсит полученную с сайта простыню с данными и создает JSON файл с данными об изделиях
     :param all_data: Простыня с данным о товаре
     :return: Словарь с основным ключом артикулом и остальной информацией в словарях
     """
@@ -132,16 +130,16 @@ def take_data_about_unit(address_file):
             data = json.load(file)
         return data
     except:
-        alarm_massage = "Нет файла с данными"
-        print(alarm_massage)
+        print("Нет файла XML с данными")
 
 
-build_id = take_unique_id_from_site()
 # list_order_xml = take_data_about_unit("Example/data_goods_from_Eplan.json")  # лист с артикулами из XML
 # data_about_goods_from_site = get_data_from_etm(list_order_xml, build_id)  # простыня с данными с сайта по артикулам
 # XML take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
+# take_data_about_goods(data_excel_about_goods_from_site)
 
-list_order_excel = take_data_about_unit("Example/data_goods_from_Eplan_Excel.json")  # Лист с артикулами из Excel
+build_id = take_unique_id_from_site()  # Уникальный ID при входе на сайт
+list_order_excel = take_data_about_unit("Example/data_goods_Eplan_Excel.json")  # Лист с артикулами из Excel
 data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам
 # Excel
-take_data_about_goods(data_excel_about_goods_from_site)
+
