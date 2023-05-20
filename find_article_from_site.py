@@ -1,3 +1,9 @@
+# pip install beautifulsoup
+# pip install fuzzywuzzy
+# pip install
+# pip install python-Levenshtein
+# pip3 install soupsieve
+
 import json
 from cookies_and_headers import cookie, header
 import requests
