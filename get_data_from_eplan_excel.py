@@ -40,7 +40,7 @@ def take_data_from_excel_eplan(adress_file_excel, file_json_for_data_excel):
             json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
         return data_unit
 
-    except Exception:
+    except FileNotFoundError:
         print("Нет файла Excel")
         return None
 
