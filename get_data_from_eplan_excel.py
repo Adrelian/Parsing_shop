@@ -1,22 +1,21 @@
 import json
 import xlrd
 
-excel_file = 'Example/Спецификация Электрика.xls'
+excel_file = 'C:/Games/python/Parsing_Shop/Example/Спецификация Электрика.xls'
 data_from_eplan_to_json = "Example/data_goods_Eplan_Excel.json"
 
 
-def take_data_from_excel_eplan(adress_file_excel, file_json_for_data_excel):
+def take_data_from_excel_eplan(adress_file_excel):
     """
     Функция собирает данные из файла Excel Eplan. И сохраняет полученные данные в json
     :param adress_file_excel: Адрес файла Excel со спецификацией
-    :param file_json_for_data_excel: 
     :return: словарь с данными об изделиях
     """
     try:
         excel_data = xlrd.open_workbook(adress_file_excel)  # Открыть файл
         page = excel_data.sheet_by_index(0)  # Открыть первый лист
 
-        with open(file_json_for_data_excel, 'w', encoding='utf-8') as data_file:
+        with open("C:/Games/python/Parsing_Shop/Example/data_goods_from_eplan_excel.json", 'w', encoding='utf-8') as data_file:
             data_unit = {}  # Пустой словарь для сбора данных об изделиях
 
             for column in range(3, page.nrows):
@@ -62,7 +61,6 @@ def save_data_eplan_excel(file_excel):
 
 
 # Получить данные из Excel спецификации (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
-data_eplan_excel = take_data_from_excel_eplan(excel_file,
-                                              data_from_eplan_to_json)
+data_eplan_excel = take_data_from_excel_eplan(excel_file)
 
 save_data_eplan_excel(excel_file)  # Сохранить новые данные из интернета в Excel
