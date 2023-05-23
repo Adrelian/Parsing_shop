@@ -33,18 +33,10 @@ def take_data_from_xml_eplan(address_file_xml):
                 code_third_site = part_data.attrib.get("")  # ОПРЕДЕЛИТЬСЯ С ТИПОМ ПЕРЕМЕННОЙ В EPLAN
 
                 # Сбор данных об изделии в один словарь
-                data_unit[article_part_number] = dict(name=desc1,
-                                                      order_type=article_type,
-                                                      name_manufacturer=name_manufacturer,
-                                                      price_retail=price,
-                                                      price_max_discount=price_with_discount,
-                                                      weight=weight,
-                                                      quantity_in_package=quantity_in_package,
-                                                      ETM_code=ETM_code,
-                                                      code_second_site=code_second_site,
-                                                      code_third_site=code_third_site
-                                                      )
-
+                data_unit[article_part_number] = {"Описание": desc1,
+                                                  "Производитель": name_manufacturer,
+                                                  "Тип изделия": article_type,
+                                                  "Кол-во в упаковке": quantity_in_package}
             json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
             return data_unit
     except Exception:

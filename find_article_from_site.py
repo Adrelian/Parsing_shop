@@ -10,6 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 from fuzzywuzzy import fuzz
 
+from get_data_from_eplan_excel import take_data_from_excel_eplan
+
 
 def take_unique_id_from_site():
     """
@@ -126,26 +128,19 @@ def take_data_about_goods(all_data):
         json.dump(data_unit, data_file, indent=4, ensure_ascii=False)
 
 
-def take_data_about_unit(address_file):
+def take_data_about_unit():
     """
-    Получение артикулов товара из каталога (файла xml) Eplan
-    :return: лист с артикулами товаров
+    Получить данные об изделиях из спецификации Eplan
+    :return: Словарь с данными о товарах
     """
-    try:
-        with open(address_file, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-        return data
-    except:
-        print("Нет файла XML с данными")
+    data = take_data_from_excel_eplan('C:/Games/python/Parsing_Shop/Example/Спецификация Электрика.xls')
+    print(data)
+    for item in data:
+        print(item)
+    return data
 
-
-# list_order_xml = take_data_about_unit("Example/data_goods_from_Eplan.json")  # лист с артикулами из XML
-# data_about_goods_from_site = get_data_from_etm(list_order_xml, build_id)  # простыня с данными с сайта по артикулам
-# XML take_data_about_goods(data_about_goods_from_site)  # Конкретные(отсортированные) данные о товарах
-# take_data_about_goods(data_excel_about_goods_from_site)
 
 build_id = take_unique_id_from_site()  # Уникальный ID при входе на сайт
-list_order_excel = take_data_about_unit("Example/data_goods_Eplan_Excel.json")  # Лист с артикулами из Excel
+list_order_excel = take_data_about_unit()  # Лист с артикулами из Excel
 data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам
 # Excel
-
