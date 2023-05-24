@@ -1,7 +1,5 @@
 import xlrd
 
-excel_file = 'C:/Games/python/Parsing_Shop/Example/Спецификация Электрика.xls'
-
 
 def take_data_from_excel_eplan(adress_file_excel):
     """
@@ -45,6 +43,5 @@ def save_data_eplan_excel(path_file_to_save):
     pass
 
 
-# Получить данные из Excel спецификации (В ДАННЫЙ МОМЕНТ СОХРАНЯЕМ В JSON)
-data_eplan_excel = take_data_from_excel_eplan(excel_file)
+
 

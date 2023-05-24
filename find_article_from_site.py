@@ -140,7 +140,3 @@ def take_data_about_unit():
     return data
 
 
-build_id = take_unique_id_from_site()  # Уникальный ID при входе на сайт
-list_order_excel = take_data_about_unit()  # Лист с артикулами из Excel
-data_excel_about_goods_from_site = get_data_from_etm(list_order_excel, build_id)  # простыня с данными по артикулам
-# Excel
