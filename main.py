@@ -59,7 +59,8 @@ def parsing():
             data = json.load(data)
     except FileNotFoundError:
         form.text_info_excel.insertPlainText("Системная ошибка: Нет временного файла")
-    # data_from_etm = get_data_from_etm(data, id_etm)  # Получить данные по спецификации с сайта ETM
+    print(id_etm)
+    data_from_etm = get_data_from_etm(data, id_etm)  # Получить данные по спецификации с сайта ETM
     # print(data_from_etm)
 
 

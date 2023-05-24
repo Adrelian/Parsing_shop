@@ -49,6 +49,7 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
             'searchValue': order_number,
         }
         # Запрос
+        print(requests.get(f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json'))
         response = requests.get(
             f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json',
             params=params,
