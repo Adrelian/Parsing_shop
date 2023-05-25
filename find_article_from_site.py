@@ -40,67 +40,70 @@ def get_data_from_etm(dict_order_numbers, build_id_etm):
     :return: простыня с данными о товарах
     """
     all_data = []  # Пустой список для сбора всех данных
-
-    for order_number in dict_order_numbers:  # Запрос на сайт по артикулу
-        # Системные данные для запроса
-        params = {
-            'page': '1',
-            'rows': '36',
-            'searchValue': order_number,
-        }
-        # Запрос
-        print(requests.get(f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json'))
-        response = requests.get(
+    item_not_found = []  # Список с товарами, которые не смог найти
+    # Проверка ответа от сайта
+    response = requests.get(
             f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json',
-            params=params,
             cookies=cookie,
             headers=header,
-        ).json()
-        # Попытка прочитать с сайта данные по артикулу
-        try:
-            data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
+        )
 
-            # Возможные способы проверки полученных данных на валидность
-            for item in data_goods:
-                # Сравниваем артикул сайта с номером для заказа EPLAN (и производителей)
-                if item["art"] == order_number \
-                        and item["mnf_name"] == dict_order_numbers[order_number]["name_manufacturer"]:
-                    item["art"] = order_number
-                    all_data.append(item)
-                    break
+    if response.status_code == 200:
+        for order_number in dict_order_numbers:  # Запрос на сайт по артикулу
+            # Системные данные для запроса
+            params = {
+                'page': '1',
+                'rows': '36',
+                'searchValue': order_number,
+            }
+            # Получение данных с сайта
+            response = requests.get(
+                f'https://www.etm.ru/_next/data/{build_id_etm}/catalog.json',
+                params=params,
+                cookies=cookie,
+                headers=header,
+            ).json()
+            # Попытка прочитать с сайта данные по артикулу
+            try:
+                data_goods = response.get("pageProps").get("data").get("rows")  # все данные о товаре
 
-                # Сравниваем тип изделия сайта и тип изделия Eplan (и производителей)
-                elif item["mnf_ser"] == dict_order_numbers[order_number]["order_type"] \
-                        and dict_order_numbers[order_number]["name_manufacturer"] == item["mnf_name"]:
-                    item["art"] = order_number
-                    all_data.append(item)
-                    break
+                # Возможные способы проверки полученных данных на валидность
+                for item in data_goods:
+                    print(f"Ищем товар {order_number}")
+                    # Сравниваем артикул сайта с номером для заказа EPLAN (и производителей)
+                    if item["art"] == order_number \
+                            and item["mnf_name"] == dict_order_numbers[order_number]["Производитель"]:
+                        item["art"] = order_number
+                        all_data.append(item)
+                        break
 
-                # Неточное сравнение имени (описания на сайте) с номером для заказа из Eplan (и производителя)
-                elif fuzz.WRatio(item["name"], order_number) > 70 \
-                        and fuzz.WRatio(dict_order_numbers[order_number]["name_manufacturer"], item["mnf_name"]) > 90:
-                    print(f"Алгоритм fuzzy сработал с переменной для {order_number}")
-                    item["art"] = order_number
-                    all_data.append(item)
-                    break
+                    # Сравниваем тип изделия сайта и тип изделия Eplan (и производителей)
+                    elif item["mnf_ser"] == dict_order_numbers[order_number]["Тип изделия"] \
+                            and dict_order_numbers[order_number]["Производитель"] == item["mnf_name"]:
+                        item["art"] = order_number
+                        all_data.append(item)
+                        break
 
-                # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan и производителя
-                elif fuzz.WRatio(item["name"], order_number) > 70 \
-                        and dict_order_numbers[order_number]["name_manufacturer"] == "":
-                    a = fuzz.WRatio(item["name"], order_number)
-                    print(a)
-                    print(f"Алгоритм fuzzy  с числом сработал для {order_number}")
-                    item["art"] = order_number
-                    all_data.append(item)
-                    break
+                    # Неточное сравнение имени (описания на сайте) с номером для заказа из Eplan (и производителя)
+                    elif fuzz.WRatio(item["name"], order_number) > 70 \
+                            and fuzz.WRatio(dict_order_numbers[order_number]["Производитель"], item["mnf_name"]) > 90:
+                        item["art"] = order_number
+                        all_data.append(item)
+                        break
 
-                # Ещё один способ проверки (если буду ошибки, то можно дописать новое условие)
-                elif None:
-                    pass
-
-        except Exception:
-            print(f"Нет данных на сайте по этому артикулу{dict_order_numbers[order_number]}")
-
+                    # Неточное сравнение имени (описания на сайте) с типом изделия из Eplan
+                    elif fuzz.WRatio(item["name"], order_number) > 70:
+                        item["art"] = order_number
+                        all_data.append(item)
+                        break
+                    else:
+                        print(f"Нет информации для товара {order_number}")
+                        item_not_found.append(order_number)
+                        break
+            except:
+                print(f"На сайте нет информации по товару {order_number}")
+    else:
+        print("Нет доступа на сайт")
     return all_data
 
 
